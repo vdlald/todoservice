@@ -32,7 +32,8 @@ public class ProjectService extends ProjectServiceGrpc.ProjectServiceImplBase {
     ) {
         final User user = userKey.get();
         if (request.getUserId().equals(user.getId().toString()) || user.getRoles().contains(User.Role.ADMIN)) {
-            final Set<GetAllUserProjectsResponse> projectsResponses = projectRepository.findAllByUserId(user.getId()).stream()
+            final Set<GetAllUserProjectsResponse> projectsResponses = projectRepository.findAllByUserId(user.getId())
+                    .stream()
                     .map(projectMapper::toDto)
                     .map(project -> GetAllUserProjectsResponse.newBuilder().setProject(project).build())
                     .collect(Collectors.toUnmodifiableSet());
