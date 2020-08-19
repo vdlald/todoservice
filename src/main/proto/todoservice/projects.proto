@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package todo;
+
+option java_package = "com.proto.todo";
+option java_multiple_files = true;
+
+message Project {
+  string id = 1;
+  string userId = 2;
+  string name = 3;
+  bool isDeleted = 4;
+  int64 createdAt = 5;  // unix time
+}
+
+message GetAllUserProjectsRequest {
+  string userId = 1;
+}
+
+message GetAllUserProjectsResponse {
+  Project project = 1;
+}
+
+service ProjectService {
+  rpc GetAllUserProjects(GetAllUserProjectsRequest) returns (stream GetAllUserProjectsResponse) {};
+}
