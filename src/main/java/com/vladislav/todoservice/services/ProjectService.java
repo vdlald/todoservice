@@ -15,24 +15,34 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ProjectService extends ProjectServiceGrpc.ProjectServiceImplBase {
 
     private final ProjectRepository projectRepository;
     private final PojoMapper<ProjectDocument, Project> projectMapper;
+    private final Context.Key<User> userKey;
 
     @Override
     public void getAllUserProjects(
             GetAllUserProjectsRequest request, StreamObserver<GetAllUserProjectsResponse> responseObserver
     ) {
-        final User user = (User) Context.key("user").get();
+        final User user = userKey.get();
         if (request.getUserId().equals(user.getId().toString()) || user.getRoles().contains(User.Role.ADMIN)) {
-            projectRepository.findAllByUserId(user.getId()).stream()
+            final Set<GetAllUserProjectsResponse> projectsResponses = projectRepository.findAllByUserId(user.getId()).stream()
                     .map(projectMapper::toDto)
                     .map(project -> GetAllUserProjectsResponse.newBuilder().setProject(project).build())
-                    .forEach(responseObserver::onNext);
-            responseObserver.onCompleted();
+                    .collect(Collectors.toUnmodifiableSet());
+
+            if (projectsResponses.isEmpty()) {
+                responseObserver.onError(Status.OK.withDescription("The user has no projects.").asRuntimeException());
+            } else {
+                projectsResponses.forEach(responseObserver::onNext);
+                responseObserver.onCompleted();
+            }
         } else {
             responseObserver.onError(Status.PERMISSION_DENIED.asRuntimeException());
         }

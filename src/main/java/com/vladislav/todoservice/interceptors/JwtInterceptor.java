@@ -17,6 +17,7 @@ import java.util.UUID;
 public class JwtInterceptor implements ServerInterceptor {
 
     private final JwtParser jwtParser;
+    private final Context.Key<User> userKey;
 
     @Override
     public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
@@ -32,7 +33,7 @@ public class JwtInterceptor implements ServerInterceptor {
                     .setUsername(claims.get("username", String.class))
                     .setRoles(claims.get("roles", (Class<List<User.Role>>) (Class) List.class));
 
-            final Context context = Context.current().withValue(Context.key("user"), user);
+            final Context context = Context.current().withValue(userKey, user);
 
             return Contexts.interceptCall(context, call, headers, next);
         } catch (Exception e) {  // don't trust the JWT !!

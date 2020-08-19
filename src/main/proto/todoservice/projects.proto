@@ -22,5 +22,6 @@ message GetAllUserProjectsResponse {
 }
 
 service ProjectService {
+  // throws out an "OK" exception if no data was found
   rpc GetAllUserProjects(GetAllUserProjectsRequest) returns (stream GetAllUserProjectsResponse) {};
 }
