@@ -28,7 +28,7 @@ public class JwtInterceptor implements ServerInterceptor {
             final Claims claims = jws.getBody();
 
             final User user = new User()
-                    .setId(claims.get("userId", UUID.class))
+                    .setId(UUID.fromString(claims.get("userId", String.class)))
                     .setUsername(claims.get("username", String.class))
                     .setRoles(claims.get("roles", (Class<List<User.Role>>) (Class) List.class));
 

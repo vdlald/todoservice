@@ -15,7 +15,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Accessors(chain = true)
 @Document(collection = "tasks")
-public class Task {
+public class TaskDocument {
 
     @MongoId
     private UUID id;
