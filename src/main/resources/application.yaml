@@ -2,3 +2,5 @@ app:
   grpc:
     server:
       port: 50052
+  jwt:
+    secret-key: secretsecretsecretsecretsecretsecretsecret
