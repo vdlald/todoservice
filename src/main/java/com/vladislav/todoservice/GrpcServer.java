@@ -4,6 +4,7 @@ import com.vladislav.todoservice.manufacture.annotations.InjectLogger;
 import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.ServerInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ public class GrpcServer implements ApplicationRunner {
     private Integer port;
 
     private final List<BindableService> services;
+    private final List<ServerInterceptor> interceptors;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
@@ -45,9 +47,8 @@ public class GrpcServer implements ApplicationRunner {
 
     private Server createServer() {
         final ServerBuilder<?> serverBuilder = ServerBuilder.forPort(port);
-        for (BindableService service : services) {
-            serverBuilder.addService(service);
-        }
+        interceptors.forEach(serverBuilder::intercept);
+        services.forEach(serverBuilder::addService);
         return serverBuilder.build();
     }
 }
