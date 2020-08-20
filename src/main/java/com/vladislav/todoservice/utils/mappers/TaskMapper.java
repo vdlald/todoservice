@@ -2,21 +2,13 @@ package com.vladislav.todoservice.utils.mappers;
 
 import com.proto.todo.Task;
 import com.vladislav.todoservice.documents.TaskDocument;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.UUID;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Accessors(chain = true)
-@Document(collection = "tasks")
+@Component
 public class TaskMapper implements PojoMapper<TaskDocument, Task> {
     @Override
     public TaskDocument toDocument(Task task) {
