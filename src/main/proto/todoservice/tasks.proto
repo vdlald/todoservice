@@ -35,7 +35,7 @@ message GetTaskResponse {
 }
 
 message CreateTaskRequest {
-  Task task = 1;  // taskId, userId don't matter
+  Task task = 1;  // taskId (id), userId don't matter
 }
 
 message CreateTaskResponse {
