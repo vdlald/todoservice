@@ -71,6 +71,7 @@ service TaskService {
   // throws out an "PERMISSION_DENIED exception if the user is not updating his task
   rpc UpdateTask(UpdateTaskRequest) returns (UpdateTaskResponse) {};
 
+  // Completely removes the task from the database
   // throws out an "NOT_FOUND" exception if no data was found
   // throws out an "PERMISSION_DENIED exception if the user is not deleting his task
   rpc DeleteTask(DeleteTaskRequest) returns (DeleteTaskResponse) {};
