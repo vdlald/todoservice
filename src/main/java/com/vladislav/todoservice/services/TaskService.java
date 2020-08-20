@@ -77,10 +77,10 @@ public class TaskService extends TaskServiceGrpc.TaskServiceImplBase {
         final User user = userKey.get();
 
         final Task requestTask = request.getTask();
-        final TaskDocument requestDocument = taskMapper.toDocument(requestTask)
-                .setUserId(user.getId()).setUserId(UUID.randomUUID());
+        TaskDocument taskDocument = taskMapper.toDocument(requestTask)
+                .setUserId(user.getId()).setId(UUID.randomUUID());
 
-        final TaskDocument taskDocument = taskRepository.save(requestDocument);
+        taskDocument = taskRepository.save(taskDocument);
         final Task task = taskMapper.toDto(taskDocument);
         final CreateTaskResponse taskResponse = CreateTaskResponse.newBuilder().setTask(task).build();
 
