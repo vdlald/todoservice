@@ -18,6 +18,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.vladislav.todoservice.utils.Utils.isAdmin;
+import static com.vladislav.todoservice.utils.Utils.permissionDeniedException;
+
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class TaskService extends TaskServiceGrpc.TaskServiceImplBase {
@@ -125,17 +128,9 @@ public class TaskService extends TaskServiceGrpc.TaskServiceImplBase {
         }
     }
 
-    private static boolean isAdmin(User user) {
-        return user.getRoles().contains(User.Role.ADMIN);
-    }
-
     private static StatusRuntimeException notFoundTaskException(String taskId) {
         return Status.NOT_FOUND
                 .withDescription(String.format("Not found task with id: %s", taskId))
                 .asRuntimeException();
-    }
-
-    private static StatusRuntimeException permissionDeniedException() {
-        return Status.PERMISSION_DENIED.asRuntimeException();
     }
 }
