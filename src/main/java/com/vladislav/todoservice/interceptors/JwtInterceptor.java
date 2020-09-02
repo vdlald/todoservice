@@ -3,6 +3,7 @@ package com.vladislav.todoservice.interceptors;
 import com.vladislav.todoservice.pojo.User;
 import io.grpc.*;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtParser;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,10 @@ public class JwtInterceptor implements ServerInterceptor {
             final Context context = Context.current().withValue(userKey, user);
 
             return Contexts.interceptCall(context, call, headers, next);
+        } catch (ExpiredJwtException e) {
+            call.close(Status.UNAUTHENTICATED.withDescription("ExpiredJwtException"), new Metadata());
+            return new ServerCall.Listener<>() {
+            };
         } catch (Exception e) {  // don't trust the JWT !!
             call.close(Status.UNAUTHENTICATED, new Metadata());
             return new ServerCall.Listener<>() {
