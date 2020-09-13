@@ -1,10 +1,11 @@
-package com.vladislav.todoservice.services;
+package com.vladislav.todoservice.grpc.services;
 
 import com.proto.todo.*;
 import com.vladislav.todoservice.documents.TaskDocument;
 import com.vladislav.todoservice.pojo.User;
 import com.vladislav.todoservice.repositories.TaskRepository;
-import com.vladislav.todoservice.utils.mappers.PojoMapper;
+import com.vladislav.todoservice.utils.readers.DocumentReader;
+import com.vladislav.todoservice.utils.writers.DocumentWriter;
 import io.grpc.Context;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -25,9 +26,10 @@ import static com.vladislav.todoservice.utils.Utils.permissionDeniedException;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class TaskService extends TaskServiceGrpc.TaskServiceImplBase {
 
-    private final TaskRepository taskRepository;
-    private final PojoMapper<TaskDocument, Task> taskMapper;
     private final Context.Key<User> userKey;
+    private final TaskRepository taskRepository;
+    private final DocumentWriter<TaskDocument, Task> taskDocumentWriter;
+    private final DocumentReader<TaskDocument, Task> taskDocumentReader;
 
     @Override
     public void getAllUserTasks(
@@ -36,7 +38,7 @@ public class TaskService extends TaskServiceGrpc.TaskServiceImplBase {
         final User user = userKey.get();
         if (request.getUserId().equals(user.getId().toString()) || isAdmin(user)) {
             final Set<GetAllUserTasksResponse> tasks = taskRepository.findAllByUserId(user.getId()).stream()
-                    .map(taskMapper::toDto)
+                    .map(taskDocumentWriter::write)
                     .map(task -> GetAllUserTasksResponse.newBuilder().setTask(task).build())
                     .collect(Collectors.toUnmodifiableSet());
 
@@ -59,7 +61,7 @@ public class TaskService extends TaskServiceGrpc.TaskServiceImplBase {
             final TaskDocument taskDocument = optionalTask.get();
             if (taskDocument.getUserId().equals(user.getId()) || isAdmin(user)) {
                 final GetTaskResponse response = GetTaskResponse.newBuilder()
-                        .setTask(taskMapper.toDto(taskDocument))
+                        .setTask(taskDocumentWriter.write(taskDocument))
                         .build();
                 responseObserver.onNext(response);
                 responseObserver.onCompleted();
@@ -77,11 +79,11 @@ public class TaskService extends TaskServiceGrpc.TaskServiceImplBase {
         final User user = userKey.get();
 
         final Task requestTask = request.getTask();
-        TaskDocument taskDocument = taskMapper.toDocument(requestTask)
+        TaskDocument taskDocument = taskDocumentReader.read(requestTask)
                 .setUserId(user.getId()).setId(UUID.randomUUID());
 
         taskDocument = taskRepository.save(taskDocument);
-        final Task task = taskMapper.toDto(taskDocument);
+        final Task task = taskDocumentWriter.write(taskDocument);
         final CreateTaskResponse taskResponse = CreateTaskResponse.newBuilder().setTask(task).build();
 
         responseObserver.onNext(taskResponse);
@@ -94,7 +96,7 @@ public class TaskService extends TaskServiceGrpc.TaskServiceImplBase {
 
         final Task task = request.getTask();
         if (task.getUserId().equals(user.getId().toString())) {
-            final TaskDocument taskDocument = taskMapper.toDocument(task);
+            final TaskDocument taskDocument = taskDocumentReader.read(task);
             final Optional<TaskDocument> optionalTaskDocument = taskRepository.findById(taskDocument.getId());
             if (optionalTaskDocument.isPresent()) {
                 taskRepository.save(taskDocument);

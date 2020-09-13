@@ -1,10 +1,11 @@
-package com.vladislav.todoservice.services;
+package com.vladislav.todoservice.grpc.services;
 
 import com.proto.todo.*;
 import com.vladislav.todoservice.documents.ProjectDocument;
 import com.vladislav.todoservice.pojo.User;
 import com.vladislav.todoservice.repositories.ProjectRepository;
-import com.vladislav.todoservice.utils.mappers.PojoMapper;
+import com.vladislav.todoservice.utils.readers.DocumentReader;
+import com.vladislav.todoservice.utils.writers.DocumentWriter;
 import io.grpc.Context;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -25,9 +26,10 @@ import static com.vladislav.todoservice.utils.Utils.permissionDeniedException;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ProjectService extends ProjectServiceGrpc.ProjectServiceImplBase {
 
-    private final ProjectRepository projectRepository;
-    private final PojoMapper<ProjectDocument, Project> projectMapper;
     private final Context.Key<User> userKey;
+    private final ProjectRepository projectRepository;
+    private final DocumentWriter<ProjectDocument, Project> projectDocumentWriter;
+    private final DocumentReader<ProjectDocument, Project> projectDocumentReader;
 
     @Override
     public void getAllUserProjects(
@@ -37,7 +39,7 @@ public class ProjectService extends ProjectServiceGrpc.ProjectServiceImplBase {
         if (request.getUserId().equals(user.getId().toString()) || user.getRoles().contains(User.Role.ADMIN)) {
             final Set<GetAllUserProjectsResponse> projectsResponses = projectRepository.findAllByUserId(user.getId())
                     .stream()
-                    .map(projectMapper::toDto)
+                    .map(projectDocumentWriter::write)
                     .map(project -> GetAllUserProjectsResponse.newBuilder().setProject(project).build())
                     .collect(Collectors.toUnmodifiableSet());
 
@@ -61,7 +63,7 @@ public class ProjectService extends ProjectServiceGrpc.ProjectServiceImplBase {
             final ProjectDocument projectDocument = optionalProject.get();
             if (projectDocument.getUserId().equals(user.getId()) || isAdmin(user)) {
                 final GetProjectResponse response = GetProjectResponse.newBuilder()
-                        .setProject(projectMapper.toDto(projectDocument))
+                        .setProject(projectDocumentWriter.write(projectDocument))
                         .build();
                 responseObserver.onNext(response);
                 responseObserver.onCompleted();
@@ -77,11 +79,11 @@ public class ProjectService extends ProjectServiceGrpc.ProjectServiceImplBase {
     public void createProject(CreateProjectRequest request, StreamObserver<CreateProjectResponse> responseObserver) {
         final User user = userKey.get();
         final Project requestProject = request.getProject();
-        ProjectDocument projectDocument = projectMapper.toDocument(requestProject)
+        ProjectDocument projectDocument = projectDocumentReader.read(requestProject)
                 .setId(UUID.randomUUID()).setUserId(user.getId());
 
         projectDocument = projectRepository.save(projectDocument);
-        final Project project = projectMapper.toDto(projectDocument);
+        final Project project = projectDocumentWriter.write(projectDocument);
         responseObserver.onNext(CreateProjectResponse.newBuilder().setProject(project).build());
         responseObserver.onCompleted();
     }
@@ -92,7 +94,7 @@ public class ProjectService extends ProjectServiceGrpc.ProjectServiceImplBase {
 
         final Project project = request.getProject();
         if (project.getUserId().equals(user.getId().toString())) {
-            final ProjectDocument projectDocument = projectMapper.toDocument(project);
+            final ProjectDocument projectDocument = projectDocumentReader.read(project);
             final var optionalProjectDocument = projectRepository.findById(projectDocument.getId());
             if (optionalProjectDocument.isPresent()) {
                 projectRepository.save(projectDocument);

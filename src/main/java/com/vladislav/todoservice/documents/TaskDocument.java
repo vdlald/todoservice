@@ -18,7 +18,7 @@ import java.util.UUID;
 public class TaskDocument {
 
     @MongoId
-    private UUID id;
+    private UUID id = UUID.randomUUID();
 
     private UUID userId;
 
@@ -28,14 +28,14 @@ public class TaskDocument {
 
     private String content;
 
-    private Boolean completed;
+    private Boolean completed = false;
 
     private LocalDateTime deadline;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     private LocalDateTime completedAt;
 
-    private Boolean isDeleted;
+    private Boolean isDeleted = false;
 
 }
