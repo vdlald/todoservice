@@ -18,14 +18,14 @@ import java.util.UUID;
 public class ProjectDocument {
 
     @MongoId
-    private UUID id;
+    private UUID id = UUID.randomUUID();
 
     private UUID userId;
 
     private String name;
 
-    private Boolean isDeleted;
+    private Boolean isDeleted = false;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
 }

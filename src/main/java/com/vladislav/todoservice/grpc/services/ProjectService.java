@@ -1,4 +1,4 @@
-package com.vladislav.todoservice.services;
+package com.vladislav.todoservice.grpc.services;
 
 import com.proto.todo.*;
 import com.vladislav.todoservice.documents.ProjectDocument;

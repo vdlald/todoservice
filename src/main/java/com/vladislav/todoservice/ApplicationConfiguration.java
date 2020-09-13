@@ -1,7 +1,5 @@
 package com.vladislav.todoservice;
 
-import com.vladislav.todoservice.pojo.User;
-import io.grpc.Context;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -19,10 +17,5 @@ public class ApplicationConfiguration {
         return Jwts.parserBuilder()
                 .setSigningKey(Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8)))
                 .build();
-    }
-
-    @Bean
-    public Context.Key<User> userKey() {
-        return Context.key("user");
     }
 }
